@@ -7,6 +7,7 @@ export const store = reactive({
   anonymousPosts: [],
   processing: false,
   error: null,
+  selectedTagFilter: null,
 
   setConversations(convs) {
     this.conversations = convs
@@ -32,10 +33,19 @@ export const store = reactive({
     this.error = err
   },
 
+  setTagFilter(tagType) {
+    this.selectedTagFilter = tagType
+  },
+
+  clearTagFilter() {
+    this.selectedTagFilter = null
+  },
+
   clearAll() {
     this.conversations = []
     this.selectedConversation = null
     this.loveLetters = []
     this.error = null
+    this.selectedTagFilter = null
   }
 })

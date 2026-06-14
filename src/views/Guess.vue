@@ -9,7 +9,15 @@
 
     <div v-else class="guess-container">
       <div class="back-link">
-        <router-link to="/gallery">← 回到广场</router-link>
+        <router-link to="/gallery" class="back-main-link">← 回到广场</router-link>
+        <span v-if="store.selectedTagFilter" class="back-filter-info">
+          （当前筛选：
+          <span class="tag" :class="'tag-' + store.selectedTagFilter">
+            {{ getFilterTagText() }}
+          </span>
+          <button class="mini-clear-btn" @click="store.clearTagFilter()">清除</button>
+          ）
+        </span>
       </div>
 
       <div class="main-content">
@@ -31,11 +39,16 @@
             <span 
               v-for="tag in currentPost.tags" 
               :key="tag.type"
-              class="tag"
+              class="tag clickable-tag"
               :class="'tag-' + tag.type"
+              @click="filterByTag(tag.type)"
             >
               {{ tag.text }}
             </span>
+          </div>
+
+          <div class="tag-filter-hint" v-if="currentPost.tags.length > 0">
+            💡 点击标签可在广场筛选同类短信
           </div>
         </div>
 
@@ -158,10 +171,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { store } from '@/store'
 
 const route = useRoute()
+const router = useRouter()
 const guessText = ref('')
 const sortBy = ref('likes')
 
@@ -314,6 +328,22 @@ function analyzeContext(post) {
   return '这是一条独立的消息，但仍能从中感受到情感的温度。'
 }
 
+function filterByTag(tagType) {
+  store.setTagFilter(tagType)
+  router.push('/gallery')
+}
+
+function getFilterTagText() {
+  if (!currentPost.value) {
+    return store.selectedTagFilter
+  }
+  const tag = currentPost.value.tags.find(t => t.type === store.selectedTagFilter)
+  if (tag) {
+    return tag.text
+  }
+  return store.selectedTagFilter
+}
+
 onMounted(() => {
 })
 </script>
@@ -326,15 +356,47 @@ onMounted(() => {
 
 .back-link {
   margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-.back-link a {
+.back-main-link {
   color: var(--love-red);
   text-decoration: none;
 }
 
-.back-link a:hover {
+.back-main-link:hover {
   text-decoration: underline;
+}
+
+.back-filter-info {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.back-filter-info .tag {
+  margin: 0;
+}
+
+.mini-clear-btn {
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--love-pink);
+  background: white;
+  color: var(--love-red);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.3s;
+}
+
+.mini-clear-btn:hover {
+  background: var(--love-pink);
+  color: white;
 }
 
 .main-content {
@@ -389,6 +451,24 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+.clickable-tag {
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+}
+
+.clickable-tag:hover {
+  transform: scale(1.08);
+  opacity: 0.9;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.tag-filter-hint {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-light);
 }
 
 .guess-section h3 {
